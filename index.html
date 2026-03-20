@@ -9,19 +9,26 @@
     <script src="https://unpkg.com/lucide@latest"></script>
     <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;800&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/simple-icons@v10.0.0/icons.js"></script>
+    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
 
     <script>
         tailwind.config = {
             theme: {
                 extend: {
                     fontFamily: { sans: ['Manrope', 'sans-serif'] },
-                    animation: { marquee: 'marquee 40s linear infinite' },
+                    animation: { 
+                        marquee: 'marquee 40s linear infinite',
+                        float: 'float 6s ease-in-out infinite',
+                        spinSlow: 'spin 4s linear infinite',
+                    },
                     keyframes: {
                         marquee: {
                             '0%': { transform: 'translateX(0%)' },
-                            /* CHANGED: Moves -50% because we duplicated the content. 
-                               This creates the seamless "Belt" effect. */
                             '100%': { transform: 'translateX(-50%)' },
+                        },
+                        float: {
+                            '0%, 100%': { transform: 'translateY(0)' },
+                            '50%': { transform: 'translateY(-20px)' },
                         }
                     }
                 }
@@ -30,43 +37,83 @@
     </script>
 
     <style>
+        /* Custom Scrollbar */
         ::-webkit-scrollbar { width: 8px; }
         ::-webkit-scrollbar-track { background: #f1f5f9; }
-        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
-        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+        ::-webkit-scrollbar-thumb { background: #94a3b8; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #64748b; }
         
+        /* Glass Effect */
         .glass-nav {
-            background: rgba(255, 255, 255, 0.9);
-            backdrop-filter: blur(12px);
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(16px);
             border-bottom: 1px solid rgba(0,0,0,0.05);
         }
-        
-        .reveal {
-            opacity: 0;
-            transform: translateY(30px);
-            transition: all 0.8s ease-out;
+
+        /* Hide Scrollbar for tabs */
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+        /* Moving Edge Lighting */
+        .edge-light-container {
+            position: relative;
+            background: white;
+            border-radius: 1.5rem;
+            z-index: 1;
+            overflow: hidden;
         }
-        .reveal.active {
-            opacity: 1;
-            transform: translateY(0);
+        .edge-light-container::before {
+            content: '';
+            position: absolute;
+            top: -50%; left: -50%; width: 200%; height: 200%;
+            background: conic-gradient(from 0deg, transparent 0%, transparent 80%, rgba(37,99,235,0.9) 100%);
+            animation: spin 3s linear infinite;
+            z-index: -2;
+        }
+        .edge-light-container::after {
+            content: '';
+            position: absolute;
+            inset: 2px;
+            background: white;
+            border-radius: calc(1.5rem - 2px);
+            z-index: -1;
+        }
+        .edge-light-dark::after {
+            background: #0f172a; 
         }
 
-        /* Hide scrollbar for language grid but allow scroll */
-        .no-scrollbar::-webkit-scrollbar {
-            display: none;
+        /* Custom Glowing Cursor - Disabled on Touch Devices for Mobile friendliness */
+        #custom-cursor {
+            position: fixed;
+            top: 0; left: 0;
+            width: 30px; height: 30px;
+            border-radius: 50%;
+            background: rgba(37, 99, 235, 0.3);
+            box-shadow: 0 0 20px rgba(37, 99, 235, 0.6);
+            pointer-events: none;
+            transform: translate(-50%, -50%);
+            z-index: 9999;
+            transition: width 0.2s, height 0.2s;
+            mix-blend-mode: multiply;
         }
-        .no-scrollbar {
-            -ms-overflow-style: none;
-            scrollbar-width: none;
+        @media (pointer: coarse) {
+            #custom-cursor { display: none !important; }
         }
+
+        /* Tab Transitions */
+        .tab-active { color: #2563eb !important; padding-left: 1rem; border-left: 4px solid #2563eb; }
+        .fade-content { animation: fadeIn 0.5s ease-in-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
 <body class="bg-slate-50 text-slate-900 overflow-x-hidden selection:bg-blue-200 selection:text-blue-900">
 
+    <div id="custom-cursor"></div>
+
     <nav id="navbar" class="fixed w-full z-50 transition-all duration-300 py-6 bg-transparent">
         <div class="max-w-7xl mx-auto px-6 flex justify-between items-center">
             <a href="#" class="flex items-center gap-2 group">
-                <div class="bg-blue-600 text-white p-2 rounded-lg group-hover:scale-110 transition-transform shadow-lg shadow-blue-600/20">
+                <div class="bg-blue-600 text-white p-2 rounded-lg group-hover:scale-110 group-hover:rotate-12 transition-all shadow-lg shadow-blue-600/30 duration-500">
                     <i data-lucide="globe" class="w-6 h-6"></i>
                 </div>
                 <span class="text-xl font-extrabold tracking-tight text-slate-900">
@@ -78,43 +125,44 @@
                 <a href="#services" class="text-sm font-bold text-slate-600 hover:text-blue-600 transition-colors">Services</a>
                 <a href="#about" class="text-sm font-bold text-slate-600 hover:text-blue-600 transition-colors">About</a>
                 <a href="#industries" class="text-sm font-bold text-slate-600 hover:text-blue-600 transition-colors">Industries</a>
-                <a href="contact.html" class="px-6 py-2.5 rounded-full bg-slate-900 text-white text-sm font-bold hover:bg-blue-600 hover:shadow-xl hover:shadow-blue-600/20 transition-all flex items-center gap-2">
+                <a href="contact.html" class="px-6 py-2.5 rounded-full bg-slate-900 text-white text-sm font-bold hover:bg-blue-600 hover:shadow-xl hover:shadow-blue-600/40 transition-all duration-500 flex items-center gap-2">
                     Get Proposal <i data-lucide="arrow-right" class="w-4 h-4"></i>
                 </a>
             </div>
         </div>
     </nav>
 
-    <section class="relative pt-32 pb-20 lg:pt-48 lg:pb-32 overflow-hidden bg-white">
-        <div class="absolute top-0 right-0 w-[600px] h-[600px] bg-blue-100 rounded-full blur-[100px] opacity-60 -translate-y-1/2 translate-x-1/3"></div>
+    <section class="relative pt-32 pb-20 lg:pt-48 lg:pb-32 overflow-hidden bg-white" id="hero-section">
+        <canvas id="network-canvas" class="absolute inset-0 w-full h-full z-0 opacity-60"></canvas>
+        <div class="absolute top-0 right-0 w-[600px] h-[600px] bg-blue-100 rounded-full blur-[100px] opacity-40 -translate-y-1/2 translate-x-1/3 animate-float z-0 pointer-events-none"></div>
 
-        <div class="max-w-7xl mx-auto px-6 relative z-10">
-            <div class="max-w-4xl reveal active">
-                <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-50 text-blue-700 text-sm font-bold tracking-wide mb-6 border border-blue-100">
+        <div class="max-w-7xl mx-auto px-6 relative z-10 pointer-events-none">
+            <div class="max-w-4xl pointer-events-auto">
+                <div data-aos="fade-down" class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/60 backdrop-blur-md text-blue-700 text-sm font-bold tracking-wide mb-6 border border-blue-200 shadow-lg">
                     <span class="relative flex h-2 w-2">
-                      <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
-                      <span class="relative inline-flex rounded-full h-2 w-2 bg-blue-500"></span>
+                      <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-500 opacity-75"></span>
+                      <span class="relative inline-flex rounded-full h-2 w-2 bg-blue-600"></span>
                     </span>
                     Pan-African Language Service Provider
                 </div>
 
-                <h1 class="text-5xl lg:text-7xl font-extrabold text-slate-900 leading-[1.1] mb-6 tracking-tight">
+                <h1 data-aos="fade-up" data-aos-delay="100" class="text-5xl lg:text-7xl font-extrabold text-slate-900 leading-[1.1] mb-6 tracking-tight">
                     Opening Access Through <br />
                     <span class="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600">
                         African Languages.
                     </span>
                 </h1>
                 
-                <p class="text-xl text-slate-600 mb-10 max-w-2xl leading-relaxed">
+                <p data-aos="fade-up" data-aos-delay="200" class="text-xl text-slate-600 mb-10 max-w-2xl leading-relaxed">
                     We help organizations communicate clearly, culturally, and effectively. 
                     Integrating <span class="text-slate-900 font-semibold">language expertise, UX insight, and AI technologies</span> to make content understood, trusted, and usable.
                 </p>
 
-                <div class="flex flex-wrap gap-4">
-                    <a href="contact.html" class="px-8 py-4 bg-slate-900 text-white rounded-full font-bold hover:bg-blue-700 transition-all shadow-xl shadow-blue-900/10 flex items-center gap-2 hover:-translate-y-1">
+                <div data-aos="fade-up" data-aos-delay="300" class="flex flex-wrap gap-4">
+                    <a href="contact.html" data-tilt data-tilt-scale="1.1" class="px-8 py-4 bg-slate-900 text-white rounded-full font-bold hover:bg-blue-700 transition-colors duration-500 shadow-xl shadow-slate-900/20 flex items-center gap-2">
                         Start a Project <i data-lucide="arrow-right" class="w-5 h-5"></i>
                     </a>
-                    <a href="mailto:thelughagateway@gmail.com" class="px-8 py-4 bg-white text-slate-700 border border-slate-200 rounded-full font-bold hover:bg-slate-50 transition-colors hover:-translate-y-1">
+                    <a href="mailto:thelughagateway@gmail.com" data-tilt data-tilt-scale="1.05" class="px-8 py-4 bg-white/80 backdrop-blur-sm text-slate-700 border border-slate-200 rounded-full font-bold hover:bg-slate-50 transition-colors duration-500 shadow-sm">
                         Talk to Our Team
                     </a>
                 </div>
@@ -122,135 +170,121 @@
         </div>
     </section>
 
-    <section class="py-20 bg-white">
-        <div class="max-w-7xl mx-auto px-6 reveal">
-            <div class="text-center mb-12">
+    <section class="py-20 bg-slate-50 overflow-hidden relative">
+        <div class="max-w-7xl mx-auto px-6">
+            <div data-aos="fade-down" class="text-center mb-12">
                 <h2 class="text-3xl font-extrabold text-slate-900">Native Fluency in <span class="text-blue-600">45+ Dialects</span></h2>
                 <p class="text-slate-500 mt-2">Connecting you to every corner of the continent.</p>
             </div>
             
-            <div class="flex flex-wrap justify-center gap-3 opacity-90">
+            <div class="flex flex-wrap justify-center gap-3 opacity-90 relative z-10">
                 <script>
                     const languages = [
-                        "Swahili", "Hausa", "Amharic", "Oromo", "Yoruba", "Igbo", "Fulani (Fulfulde)", "Berber (Amazigh)",
-                        "Zulu", "Shona", "Somali", "Afrikaans", "Akan (Twi)", "Wolof", "Lingala", "Kamba", "Kikuyu",
+                        "Swahili", "Hausa", "Amharic", "Oromo", "Yoruba", "Igbo", "Fulani", "Berber",
+                        "Zulu", "Shona", "Somali", "Afrikaans", "Akan", "Wolof", "Lingala", "Kamba", "Kikuyu",
                         "Kinyarwanda", "Kirundi", "Chichewa", "Tswana", "Sotho", "Xhosa", "Tigrinya", "Kanuri", "Bambara",
-                        "Edo", "Tiv", "Luo", "Maasai", "Ga", "Ewe", "Venda", "Tsonga", "Luganda", "Luba-Katanga", 
-                        "Luba-Kasai", "Sepedi", "Ndebele", "Songhai", "Tamazight", "Tachelhit", "Kabyle", "Fijian", "Luhya"
+                        "Edo", "Tiv", "Luo", "Maasai", "Ga", "Ewe", "Venda", "Tsonga", "Luganda", "Luba", "Sepedi", "Ndebele"
                     ];
-                    
-                    languages.forEach(lang => {
-                        document.write(`<span class="px-4 py-2 bg-slate-50 border border-slate-100 rounded-full text-sm font-semibold text-slate-600 hover:bg-blue-50 hover:text-blue-700 hover:border-blue-200 transition-colors cursor-default">${lang}</span>`);
+                    languages.forEach((lang, i) => {
+                        let delay = (i % 5) * 100; // Stagger effect
+                        document.write(`<span data-aos="fade-up" data-aos-delay="${delay}" class="px-4 py-2 bg-white border border-slate-200 rounded-full text-sm font-semibold text-slate-600 hover:bg-blue-600 hover:text-white hover:scale-110 hover:shadow-lg hover:shadow-blue-600/30 transition-all duration-300 cursor-default">${lang}</span>`);
                     });
                 </script>
             </div>
         </div>
     </section>
 
-    <section class="pt-20 pb-10 bg-white relative">
-        <div class="max-w-7xl mx-auto px-6 text-center reveal">
-            <div class="mb-4">
-                <span class="text-6xl md:text-8xl font-extrabold text-transparent bg-clip-text bg-gradient-to-b from-slate-900 to-slate-700 tracking-tighter" id="wordCounter">0</span>
+    <section class="pt-20 pb-10 bg-white relative" id="counter-section">
+        <div class="max-w-7xl mx-auto px-6 text-center">
+            <div data-aos="zoom-in" class="mb-4">
+                <span class="text-6xl md:text-8xl font-extrabold text-transparent bg-clip-text bg-gradient-to-b from-blue-900 to-blue-600 tracking-tighter drop-shadow-sm" id="wordCounter">0</span>
                 <span class="text-4xl md:text-6xl font-bold text-slate-300">+</span>
             </div>
-            <p class="text-xl text-blue-600 font-bold mb-16 uppercase tracking-widest">Words Translated & Counting</p>
-
-            <p class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-10">Trusted by Global Leaders</p>
+            <p data-aos="fade-up" data-aos-delay="100" class="text-xl text-slate-900 font-bold mb-16 uppercase tracking-widest">Words Translated & Counting</p>
+            <p data-aos="fade-in" data-aos-delay="200" class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-10">Trusted by Global Leaders</p>
         </div>
     </section>
 
-    <section class="pb-20 bg-white border-b border-slate-100 overflow-hidden">
+    <section data-aos="fade-in" class="pb-20 bg-white border-b border-slate-100 overflow-hidden">
         <div class="relative flex overflow-x-hidden group">
             <div class="animate-marquee whitespace-nowrap flex items-center">
-                
                 <div class="flex items-center">
-                    <div class="flex flex-col items-center gap-3 px-12 min-w-[200px]">
-                        <div class="p-1 rounded-full border-2 border-gray-200">
-                            <img src="images/google.png" alt="Google" class="w-20 h-20 rounded-full object-contain p-2 bg-white" onerror="this.src='https://via.placeholder.com/80?text=Google'">
+                    <div class="flex flex-col items-center gap-3 px-8 md:px-12 min-w-[150px] md:min-w-[200px] hover:-translate-y-2 hover:scale-110 transition-all duration-500">
+                        <div class="p-1 rounded-full border-2 border-gray-100 shadow-md bg-white">
+                            <img src="images/google.png" alt="Google" class="w-16 h-16 md:w-20 md:h-20 rounded-full object-contain p-2" onerror="this.src='https://via.placeholder.com/80?text=Google'">
                         </div>
-                        <div class="text-center"><h4 class="text-sm font-bold">Google</h4><span class="text-xs text-blue-600 font-semibold uppercase">Technology</span></div>
+                        <div class="text-center"><h4 class="text-sm font-extrabold">Google</h4><span class="text-[10px] text-blue-600 font-bold uppercase tracking-wider">Technology</span></div>
                     </div>
-
-                    <div class="flex flex-col items-center gap-3 px-12 min-w-[200px]">
-                        <div class="p-1 rounded-full border-2 border-gray-200">
-                            <img src="images/tiktok.png" alt="TikTok" class="w-20 h-20 rounded-full object-contain p-2 bg-white" onerror="this.src='https://via.placeholder.com/80?text=TikTok'">
+                    <div class="flex flex-col items-center gap-3 px-8 md:px-12 min-w-[150px] md:min-w-[200px] hover:-translate-y-2 hover:scale-110 transition-all duration-500">
+                        <div class="p-1 rounded-full border-2 border-gray-100 shadow-md bg-white">
+                            <img src="images/tiktok.png" alt="TikTok" class="w-16 h-16 md:w-20 md:h-20 rounded-full object-contain p-2" onerror="this.src='https://via.placeholder.com/80?text=TikTok'">
                         </div>
-                        <div class="text-center"><h4 class="text-sm font-bold">TikTok</h4><span class="text-xs text-blue-600 font-semibold uppercase">Social Media</span></div>
+                        <div class="text-center"><h4 class="text-sm font-extrabold">TikTok</h4><span class="text-[10px] text-blue-600 font-bold uppercase tracking-wider">Social Media</span></div>
                     </div>
-
-                    <div class="flex flex-col items-center gap-3 px-12 min-w-[200px]">
-                        <div class="p-1 rounded-full border-2 border-gray-200">
-                            <img src="images/uber.png" alt="Uber" class="w-20 h-20 rounded-full object-contain p-2 bg-white" onerror="this.src='https://via.placeholder.com/80?text=Uber'">
+                    <div class="flex flex-col items-center gap-3 px-8 md:px-12 min-w-[150px] md:min-w-[200px] hover:-translate-y-2 hover:scale-110 transition-all duration-500">
+                        <div class="p-1 rounded-full border-2 border-gray-100 shadow-md bg-white">
+                            <img src="images/uber.png" alt="Uber" class="w-16 h-16 md:w-20 md:h-20 rounded-full object-contain p-2" onerror="this.src='https://via.placeholder.com/80?text=Uber'">
                         </div>
-                        <div class="text-center"><h4 class="text-sm font-bold">Uber</h4><span class="text-xs text-blue-600 font-semibold uppercase">Mobility</span></div>
+                        <div class="text-center"><h4 class="text-sm font-extrabold">Uber</h4><span class="text-[10px] text-blue-600 font-bold uppercase tracking-wider">Mobility</span></div>
                     </div>
-
-                    <div class="flex flex-col items-center gap-3 px-12 min-w-[200px]">
-                        <div class="p-1 rounded-full border-2 border-gray-200">
-                            <img src="images/pfizer.png" alt="Pfizer" class="w-20 h-20 rounded-full object-contain p-2 bg-white" onerror="this.src='https://via.placeholder.com/80?text=Pfizer'">
+                    <div class="flex flex-col items-center gap-3 px-8 md:px-12 min-w-[150px] md:min-w-[200px] hover:-translate-y-2 hover:scale-110 transition-all duration-500">
+                        <div class="p-1 rounded-full border-2 border-gray-100 shadow-md bg-white">
+                            <img src="images/pfizer.png" alt="Pfizer" class="w-16 h-16 md:w-20 md:h-20 rounded-full object-contain p-2" onerror="this.src='https://via.placeholder.com/80?text=Pfizer'">
                         </div>
-                        <div class="text-center"><h4 class="text-sm font-bold">Pfizer</h4><span class="text-xs text-blue-600 font-semibold uppercase">Healthcare</span></div>
+                        <div class="text-center"><h4 class="text-sm font-extrabold">Pfizer</h4><span class="text-[10px] text-blue-600 font-bold uppercase tracking-wider">Healthcare</span></div>
                     </div>
-
-                    <div class="flex flex-col items-center gap-3 px-12 min-w-[200px]">
-                        <div class="p-1 rounded-full border-2 border-gray-200">
-                            <img src="images/meta.png" alt="Meta" class="w-20 h-20 rounded-full object-contain p-2 bg-white" onerror="this.src='https://via.placeholder.com/80?text=Meta'">
+                    <div class="flex flex-col items-center gap-3 px-8 md:px-12 min-w-[150px] md:min-w-[200px] hover:-translate-y-2 hover:scale-110 transition-all duration-500">
+                        <div class="p-1 rounded-full border-2 border-gray-100 shadow-md bg-white">
+                            <img src="images/meta.png" alt="Meta" class="w-16 h-16 md:w-20 md:h-20 rounded-full object-contain p-2" onerror="this.src='https://via.placeholder.com/80?text=Meta'">
                         </div>
-                        <div class="text-center"><h4 class="text-sm font-bold">Meta</h4><span class="text-xs text-blue-600 font-semibold uppercase">Social Tech</span></div>
+                        <div class="text-center"><h4 class="text-sm font-extrabold">Meta</h4><span class="text-[10px] text-blue-600 font-bold uppercase tracking-wider">Social Tech</span></div>
                     </div>
-
-                    <div class="flex flex-col items-center gap-3 px-12 min-w-[200px]">
-                        <div class="p-1 rounded-full border-2 border-gray-200">
-                            <img src="images/sony.png" alt="Sony" class="w-20 h-20 rounded-full object-contain p-2 bg-white" onerror="this.src='https://via.placeholder.com/80?text=Sony'">
+                    <div class="flex flex-col items-center gap-3 px-8 md:px-12 min-w-[150px] md:min-w-[200px] hover:-translate-y-2 hover:scale-110 transition-all duration-500">
+                        <div class="p-1 rounded-full border-2 border-gray-100 shadow-md bg-white">
+                            <img src="images/sony.png" alt="Sony" class="w-16 h-16 md:w-20 md:h-20 rounded-full object-contain p-2" onerror="this.src='https://via.placeholder.com/80?text=Sony'">
                         </div>
-                        <div class="text-center"><h4 class="text-sm font-bold">Sony</h4><span class="text-xs text-blue-600 font-semibold uppercase">Electronics</span></div>
+                        <div class="text-center"><h4 class="text-sm font-extrabold">Sony</h4><span class="text-[10px] text-blue-600 font-bold uppercase tracking-wider">Electronics</span></div>
                     </div>
                 </div>
 
                 <div class="flex items-center">
-                    <div class="flex flex-col items-center gap-3 px-12 min-w-[200px]">
-                        <div class="p-1 rounded-full border-2 border-gray-200">
-                            <img src="images/google.png" alt="Google" class="w-20 h-20 rounded-full object-contain p-2 bg-white" onerror="this.src='https://via.placeholder.com/80?text=Google'">
+                    <div class="flex flex-col items-center gap-3 px-8 md:px-12 min-w-[150px] md:min-w-[200px] hover:-translate-y-2 hover:scale-110 transition-all duration-500">
+                        <div class="p-1 rounded-full border-2 border-gray-100 shadow-md bg-white">
+                            <img src="images/google.png" alt="Google" class="w-16 h-16 md:w-20 md:h-20 rounded-full object-contain p-2" onerror="this.src='https://via.placeholder.com/80?text=Google'">
                         </div>
-                        <div class="text-center"><h4 class="text-sm font-bold">Google</h4><span class="text-xs text-blue-600 font-semibold uppercase">Technology</span></div>
+                        <div class="text-center"><h4 class="text-sm font-extrabold">Google</h4><span class="text-[10px] text-blue-600 font-bold uppercase tracking-wider">Technology</span></div>
                     </div>
-
-                    <div class="flex flex-col items-center gap-3 px-12 min-w-[200px]">
-                        <div class="p-1 rounded-full border-2 border-gray-200">
-                            <img src="images/tiktok.png" alt="TikTok" class="w-20 h-20 rounded-full object-contain p-2 bg-white" onerror="this.src='https://via.placeholder.com/80?text=TikTok'">
+                    <div class="flex flex-col items-center gap-3 px-8 md:px-12 min-w-[150px] md:min-w-[200px] hover:-translate-y-2 hover:scale-110 transition-all duration-500">
+                        <div class="p-1 rounded-full border-2 border-gray-100 shadow-md bg-white">
+                            <img src="images/tiktok.png" alt="TikTok" class="w-16 h-16 md:w-20 md:h-20 rounded-full object-contain p-2" onerror="this.src='https://via.placeholder.com/80?text=TikTok'">
                         </div>
-                        <div class="text-center"><h4 class="text-sm font-bold">TikTok</h4><span class="text-xs text-blue-600 font-semibold uppercase">Social Media</span></div>
+                        <div class="text-center"><h4 class="text-sm font-extrabold">TikTok</h4><span class="text-[10px] text-blue-600 font-bold uppercase tracking-wider">Social Media</span></div>
                     </div>
-
-                    <div class="flex flex-col items-center gap-3 px-12 min-w-[200px]">
-                        <div class="p-1 rounded-full border-2 border-gray-200">
-                            <img src="images/uber.png" alt="Uber" class="w-20 h-20 rounded-full object-contain p-2 bg-white" onerror="this.src='https://via.placeholder.com/80?text=Uber'">
+                    <div class="flex flex-col items-center gap-3 px-8 md:px-12 min-w-[150px] md:min-w-[200px] hover:-translate-y-2 hover:scale-110 transition-all duration-500">
+                        <div class="p-1 rounded-full border-2 border-gray-100 shadow-md bg-white">
+                            <img src="images/uber.png" alt="Uber" class="w-16 h-16 md:w-20 md:h-20 rounded-full object-contain p-2" onerror="this.src='https://via.placeholder.com/80?text=Uber'">
                         </div>
-                        <div class="text-center"><h4 class="text-sm font-bold">Uber</h4><span class="text-xs text-blue-600 font-semibold uppercase">Mobility</span></div>
+                        <div class="text-center"><h4 class="text-sm font-extrabold">Uber</h4><span class="text-[10px] text-blue-600 font-bold uppercase tracking-wider">Mobility</span></div>
                     </div>
-
-                    <div class="flex flex-col items-center gap-3 px-12 min-w-[200px]">
-                        <div class="p-1 rounded-full border-2 border-gray-200">
-                            <img src="images/pfizer.png" alt="Pfizer" class="w-20 h-20 rounded-full object-contain p-2 bg-white" onerror="this.src='https://via.placeholder.com/80?text=Pfizer'">
+                    <div class="flex flex-col items-center gap-3 px-8 md:px-12 min-w-[150px] md:min-w-[200px] hover:-translate-y-2 hover:scale-110 transition-all duration-500">
+                        <div class="p-1 rounded-full border-2 border-gray-100 shadow-md bg-white">
+                            <img src="images/pfizer.png" alt="Pfizer" class="w-16 h-16 md:w-20 md:h-20 rounded-full object-contain p-2" onerror="this.src='https://via.placeholder.com/80?text=Pfizer'">
                         </div>
-                        <div class="text-center"><h4 class="text-sm font-bold">Pfizer</h4><span class="text-xs text-blue-600 font-semibold uppercase">Healthcare</span></div>
+                        <div class="text-center"><h4 class="text-sm font-extrabold">Pfizer</h4><span class="text-[10px] text-blue-600 font-bold uppercase tracking-wider">Healthcare</span></div>
                     </div>
-
-                    <div class="flex flex-col items-center gap-3 px-12 min-w-[200px]">
-                        <div class="p-1 rounded-full border-2 border-gray-200">
-                            <img src="images/meta.png" alt="Meta" class="w-20 h-20 rounded-full object-contain p-2 bg-white" onerror="this.src='https://via.placeholder.com/80?text=Meta'">
+                    <div class="flex flex-col items-center gap-3 px-8 md:px-12 min-w-[150px] md:min-w-[200px] hover:-translate-y-2 hover:scale-110 transition-all duration-500">
+                        <div class="p-1 rounded-full border-2 border-gray-100 shadow-md bg-white">
+                            <img src="images/meta.png" alt="Meta" class="w-16 h-16 md:w-20 md:h-20 rounded-full object-contain p-2" onerror="this.src='https://via.placeholder.com/80?text=Meta'">
                         </div>
-                        <div class="text-center"><h4 class="text-sm font-bold">Meta</h4><span class="text-xs text-blue-600 font-semibold uppercase">Social Tech</span></div>
+                        <div class="text-center"><h4 class="text-sm font-extrabold">Meta</h4><span class="text-[10px] text-blue-600 font-bold uppercase tracking-wider">Social Tech</span></div>
                     </div>
-
-                    <div class="flex flex-col items-center gap-3 px-12 min-w-[200px]">
-                        <div class="p-1 rounded-full border-2 border-gray-200">
-                            <img src="images/sony.png" alt="Sony" class="w-20 h-20 rounded-full object-contain p-2 bg-white" onerror="this.src='https://via.placeholder.com/80?text=Sony'">
+                    <div class="flex flex-col items-center gap-3 px-8 md:px-12 min-w-[150px] md:min-w-[200px] hover:-translate-y-2 hover:scale-110 transition-all duration-500">
+                        <div class="p-1 rounded-full border-2 border-gray-100 shadow-md bg-white">
+                            <img src="images/sony.png" alt="Sony" class="w-16 h-16 md:w-20 md:h-20 rounded-full object-contain p-2" onerror="this.src='https://via.placeholder.com/80?text=Sony'">
                         </div>
-                        <div class="text-center"><h4 class="text-sm font-bold">Sony</h4><span class="text-xs text-blue-600 font-semibold uppercase">Electronics</span></div>
+                        <div class="text-center"><h4 class="text-sm font-extrabold">Sony</h4><span class="text-[10px] text-blue-600 font-bold uppercase tracking-wider">Electronics</span></div>
                     </div>
                 </div>
-
             </div>
         </div>
     </section>
@@ -258,134 +292,131 @@
     <section id="about" class="py-24 bg-slate-900 text-white relative overflow-hidden">
         <div class="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/stardust.png')] opacity-10"></div>
         <div class="max-w-7xl mx-auto px-6 grid md:grid-cols-2 gap-16 items-center relative z-10">
-            <div class="reveal">
-                <h2 class="text-4xl font-bold mb-6">Language is more than words. <br/><span class="text-blue-400">It shapes trust.</span></h2>
+            <div data-aos="fade-right">
+                <h2 class="text-4xl md:text-5xl font-extrabold mb-6 leading-tight">Language is more than words. <br/><span class="text-blue-400">It shapes trust.</span></h2>
                 <div class="space-y-6 text-lg text-slate-300 leading-relaxed">
-                    <p>Lugha Gateway is a pan-African Language Service Provider dedicated to making global content accessible to African audiences in languages they truly resonate with.</p>
-                    <p>We operate at the intersection of <strong>language, culture, user experience, and technology</strong>.</p>
+                    <p>The Lugha Gateway is a pan-African Language Service Provider dedicated to making global content accessible to African audiences in languages they truly resonate with.</p>
+                    <p>We operate at the intersection of <strong class="text-white">language, culture, user experience, and technology</strong>.</p>
                 </div>
             </div>
             
-            <div class="grid grid-cols-1 gap-4 reveal">
-                <div class="flex items-center gap-4 p-6 bg-white/5 border border-white/10 rounded-2xl hover:bg-white/10 transition-colors cursor-default">
-                    <div class="p-2 bg-blue-500/20 rounded-full text-blue-400"><i data-lucide="check-circle-2" class="w-5 h-5"></i></div>
-                    <span class="font-semibold">African-language-first approach</span>
+            <div class="grid grid-cols-1 gap-6">
+                <div data-aos="slide-left" data-aos-delay="100" class="edge-light-container edge-light-dark p-1 rounded-2xl">
+                    <div class="relative z-10 flex items-center gap-4 p-5 bg-slate-800/90 backdrop-blur-sm rounded-xl">
+                        <div class="p-3 bg-blue-500/20 rounded-full text-blue-400 animate-pulse"><i data-lucide="check-circle-2" class="w-6 h-6"></i></div>
+                        <span class="font-bold text-lg tracking-wide">African-language-first approach</span>
+                    </div>
                 </div>
-                <div class="flex items-center gap-4 p-6 bg-white/5 border border-white/10 rounded-2xl hover:bg-white/10 transition-colors cursor-default">
-                    <div class="p-2 bg-blue-500/20 rounded-full text-blue-400"><i data-lucide="check-circle-2" class="w-5 h-5"></i></div>
-                    <span class="font-semibold">Native linguists across the continent</span>
-                </div>
-                <div class="flex items-center gap-4 p-6 bg-white/5 border border-white/10 rounded-2xl hover:bg-white/10 transition-colors cursor-default">
-                    <div class="p-2 bg-blue-500/20 rounded-full text-blue-400"><i data-lucide="check-circle-2" class="w-5 h-5"></i></div>
-                    <span class="font-semibold">UX-driven localization</span>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <section id="services" class="py-24 bg-slate-50">
-        <div class="max-w-7xl mx-auto px-6">
-            <div class="text-center max-w-3xl mx-auto mb-16 reveal">
-                <h2 class="text-4xl font-bold text-slate-900 mb-4">Comprehensive Solutions</h2>
-                <p class="text-slate-600">From regulated life sciences content to AI model training.</p>
-            </div>
-
-            <div class="grid md:grid-cols-2 lg:grid-cols-2 gap-6">
                 
-                <div class="group p-10 bg-white rounded-3xl border border-slate-100 shadow-sm hover:shadow-xl hover:-translate-y-2 transition-all duration-300 reveal">
-                    <div class="w-14 h-14 bg-blue-600 text-white rounded-2xl flex items-center justify-center mb-6 shadow-lg shadow-blue-600/20">
-                        <i data-lucide="globe" class="w-7 h-7"></i>
+                <div data-aos="slide-left" data-aos-delay="200" class="edge-light-container edge-light-dark p-1 rounded-2xl">
+                    <div class="relative z-10 flex items-center gap-4 p-5 bg-slate-800/90 backdrop-blur-sm rounded-xl">
+                        <div class="p-3 bg-purple-500/20 rounded-full text-purple-400 animate-pulse"><i data-lucide="users" class="w-6 h-6"></i></div>
+                        <span class="font-bold text-lg tracking-wide">Native linguists across the continent</span>
                     </div>
-                    <h3 class="text-2xl font-bold text-slate-900 mb-2">Language & Localization</h3>
-                    <p class="text-slate-600 mb-6">Translation, Transcreation, and LQA for African languages. We ensure your message adapts for cultural impact.</p>
-                    <ul class="space-y-2 text-sm text-slate-500">
-                        <li class="flex gap-2"><div class="w-1.5 h-1.5 rounded-full bg-blue-600 mt-1.5"></div> Website & App Localization</li>
-                        <li class="flex gap-2"><div class="w-1.5 h-1.5 rounded-full bg-blue-600 mt-1.5"></div> Marketing Transcreation</li>
-                    </ul>
                 </div>
 
-                <div class="group p-10 bg-white rounded-3xl border border-slate-100 shadow-sm hover:shadow-xl hover:-translate-y-2 transition-all duration-300 reveal">
-                    <div class="w-14 h-14 bg-purple-600 text-white rounded-2xl flex items-center justify-center mb-6 shadow-lg shadow-purple-600/20">
-                        <i data-lucide="users" class="w-7 h-7"></i>
+                <div data-aos="slide-left" data-aos-delay="300" class="edge-light-container edge-light-dark p-1 rounded-2xl">
+                    <div class="relative z-10 flex items-center gap-4 p-5 bg-slate-800/90 backdrop-blur-sm rounded-xl">
+                        <div class="p-3 bg-emerald-500/20 rounded-full text-emerald-400 animate-pulse"><i data-lucide="cpu" class="w-6 h-6"></i></div>
+                        <span class="font-bold text-lg tracking-wide">UX-driven localization</span>
                     </div>
-                    <h3 class="text-2xl font-bold text-slate-900 mb-2">UX & Content Experience</h3>
-                    <p class="text-slate-600 mb-6">We test localized content in real user journeys. Microcopy, error messages, and cultural usability reviews.</p>
-                    <ul class="space-y-2 text-sm text-slate-500">
-                        <li class="flex gap-2"><div class="w-1.5 h-1.5 rounded-full bg-purple-600 mt-1.5"></div> UX Writing Review</li>
-                        <li class="flex gap-2"><div class="w-1.5 h-1.5 rounded-full bg-purple-600 mt-1.5"></div> Cultural Usability Testing</li>
-                    </ul>
                 </div>
-
-                <div class="group p-10 bg-white rounded-3xl border border-slate-100 shadow-sm hover:shadow-xl hover:-translate-y-2 transition-all duration-300 reveal">
-                    <div class="w-14 h-14 bg-emerald-600 text-white rounded-2xl flex items-center justify-center mb-6 shadow-lg shadow-emerald-600/20">
-                        <i data-lucide="cpu" class="w-7 h-7"></i>
-                    </div>
-                    <h3 class="text-2xl font-bold text-slate-900 mb-2">AI & LLM Evaluation</h3>
-                    <p class="text-slate-600 mb-6">Validating African language outputs for accuracy. We provide MT post-editing and data annotation.</p>
-                    <ul class="space-y-2 text-sm text-slate-500">
-                        <li class="flex gap-2"><div class="w-1.5 h-1.5 rounded-full bg-emerald-600 mt-1.5"></div> Human-Centered AI Training</li>
-                        <li class="flex gap-2"><div class="w-1.5 h-1.5 rounded-full bg-emerald-600 mt-1.5"></div> Bias & Tone Assessment</li>
-                    </ul>
-                </div>
-
-                <div class="group p-10 bg-white rounded-3xl border border-slate-100 shadow-sm hover:shadow-xl hover:-translate-y-2 transition-all duration-300 reveal">
-                    <div class="w-14 h-14 bg-rose-600 text-white rounded-2xl flex items-center justify-center mb-6 shadow-lg shadow-rose-600/20">
-                        <i data-lucide="activity" class="w-7 h-7"></i>
-                    </div>
-                    <h3 class="text-2xl font-bold text-slate-900 mb-2">Life Sciences & Regulated</h3>
-                    <p class="text-slate-600 mb-6">Clear language saves lives. We specialize in patient-facing materials, clinical trials, and compliance.</p>
-                    <ul class="space-y-2 text-sm text-slate-500">
-                        <li class="flex gap-2"><div class="w-1.5 h-1.5 rounded-full bg-rose-600 mt-1.5"></div> Clinical Translation</li>
-                        <li class="flex gap-2"><div class="w-1.5 h-1.5 rounded-full bg-rose-600 mt-1.5"></div> Regulatory-Aware LQA</li>
-                    </ul>
-                </div>
-
             </div>
         </div>
     </section>
 
-    <section id="industries" class="py-24 bg-white border-t border-slate-100">
-        <div class="max-w-7xl mx-auto px-6 reveal">
-            <h2 class="text-3xl font-bold text-slate-900 mb-12">Industries We Serve</h2>
-            <div class="flex flex-wrap gap-4">
-                <span class="px-6 py-3 rounded-full bg-slate-50 border border-slate-200 text-slate-700 font-semibold hover:bg-slate-900 hover:text-white transition-colors cursor-default">Technology & Digital Platforms</span>
-                <span class="px-6 py-3 rounded-full bg-slate-50 border border-slate-200 text-slate-700 font-semibold hover:bg-slate-900 hover:text-white transition-colors cursor-default">Healthcare & Pharmaceuticals</span>
-                <span class="px-6 py-3 rounded-full bg-slate-50 border border-slate-200 text-slate-700 font-semibold hover:bg-slate-900 hover:text-white transition-colors cursor-default">Social Media Platforms</span>
-                <span class="px-6 py-3 rounded-full bg-slate-50 border border-slate-200 text-slate-700 font-semibold hover:bg-slate-900 hover:text-white transition-colors cursor-default">Education & Research</span>
-                <span class="px-6 py-3 rounded-full bg-slate-50 border border-slate-200 text-slate-700 font-semibold hover:bg-slate-900 hover:text-white transition-colors cursor-default">Faith-Based Organizations</span>
-                <span class="px-6 py-3 rounded-full bg-slate-50 border border-slate-200 text-slate-700 font-semibold hover:bg-slate-900 hover:text-white transition-colors cursor-default">AI & Language Tech</span>
+    <section id="services" class="py-32 bg-slate-50 overflow-hidden relative">
+        <div class="absolute -right-40 top-20 w-96 h-96 bg-blue-200 rounded-full mix-blend-multiply filter blur-[80px] opacity-50 animate-spinSlow"></div>
+        <div class="max-w-7xl mx-auto px-6 relative z-10">
+            <div data-aos="fade-up" class="text-center max-w-3xl mx-auto mb-20">
+                <h2 class="text-4xl md:text-5xl font-extrabold text-slate-900 mb-4">Comprehensive Solutions</h2>
+                <p class="text-xl text-slate-600">Dynamic capability. Built for scale.</p>
+            </div>
+
+            <div class="flex flex-col lg:flex-row gap-16 items-center">
+                <div class="flex-1 w-full space-y-6" data-aos="fade-right">
+                    <div id="tab-0" class="solution-tab text-xl md:text-2xl font-bold text-slate-400 transition-all duration-500 tab-active hover:text-blue-500 cursor-pointer">Language & Localization</div>
+                    <div id="tab-1" class="solution-tab text-xl md:text-2xl font-bold text-slate-400 transition-all duration-500 hover:text-blue-500 cursor-pointer">UX & Content Experience</div>
+                    <div id="tab-2" class="solution-tab text-xl md:text-2xl font-bold text-slate-400 transition-all duration-500 hover:text-blue-500 cursor-pointer">AI & LLM Evaluation</div>
+                    <div id="tab-3" class="solution-tab text-xl md:text-2xl font-bold text-slate-400 transition-all duration-500 hover:text-blue-500 cursor-pointer">Life Sciences & Regulated</div>
+                </div>
+
+                <div class="flex-1 w-full" data-aos="fade-left">
+                    <div data-tilt data-tilt-max="5" data-tilt-speed="400" data-tilt-glare class="edge-light-container p-1 shadow-2xl shadow-blue-900/20">
+                        <div id="solution-display" class="relative z-10 bg-white p-8 md:p-12 rounded-xl h-full flex flex-col justify-center min-h-[350px]">
+                            </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="industries" class="py-32 bg-slate-950 text-white relative overflow-hidden flex items-center justify-center min-h-[500px]">
+        <div id="ind-bg-text" class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-6xl md:text-[10rem] lg:text-[12rem] font-black text-slate-800 opacity-50 whitespace-nowrap transition-all duration-1000 ease-in-out select-none pointer-events-none">
+            TECHNOLOGY
+        </div>
+        
+        <div class="max-w-4xl mx-auto px-6 relative z-10 text-center flex flex-col items-center">
+            <h2 data-aos="fade-down" class="text-sm font-bold tracking-widest uppercase text-blue-500 mb-12">Industries We Empower</h2>
+            
+            <div id="ind-content" class="flex flex-col items-center transition-all duration-500">
+                <div id="ind-icon" class="w-20 h-20 bg-blue-600 rounded-2xl flex items-center justify-center shadow-lg shadow-blue-600/50 mb-8 animate-float">
+                    <i data-lucide="laptop" class="w-10 h-10 text-white"></i>
+                </div>
+                <h3 id="ind-title" class="text-4xl md:text-6xl font-extrabold mb-6 tracking-tight">Technology Platforms</h3>
+                <p id="ind-desc" class="text-xl md:text-2xl text-slate-400 max-w-2xl">Integrating seamless localization into global software and digital ecosystems.</p>
             </div>
         </div>
     </section>
 
     <section class="py-24 bg-blue-600 text-white relative overflow-hidden">
-        <div class="absolute inset-0 bg-gradient-to-br from-blue-600 to-indigo-900"></div>
-        <div class="max-w-4xl mx-auto px-6 text-center relative z-10 reveal">
-            <h2 class="text-4xl md:text-5xl font-bold mb-6">Let’s Open the Gateway Together.</h2>
-            <p class="text-xl text-blue-100 mb-10">Whether you’re scaling into African markets, building inclusive AI systems, or localizing critical information.</p>
-            <div class="flex flex-col sm:flex-row justify-center gap-4">
-                <a href="contact.html" class="px-8 py-4 bg-white text-blue-900 rounded-full font-bold hover:bg-blue-50 transition-all shadow-xl">
+        <div class="absolute inset-0 bg-gradient-to-br from-blue-600 to-indigo-900 animate-float" style="animation-duration: 10s;"></div>
+        <div class="max-w-4xl mx-auto px-6 text-center relative z-10">
+            <h2 data-aos="zoom-in" class="text-4xl md:text-6xl font-extrabold mb-6 tracking-tight">Open the Gateway.</h2>
+            <p data-aos="fade-up" data-aos-delay="100" class="text-xl text-blue-100 mb-12">Scale into African markets. Build inclusive AI. Localize critical information.</p>
+            <div data-aos="fade-up" data-aos-delay="200" class="flex flex-col sm:flex-row justify-center gap-6">
+                <a href="contact.html" data-tilt data-tilt-scale="1.1" class="px-10 py-5 bg-white text-blue-900 rounded-full text-lg font-extrabold hover:bg-blue-50 transition-all duration-300 shadow-2xl">
                     Start a Project
                 </a>
-                <a href="contact.html" class="px-8 py-4 bg-transparent border-2 border-white/30 text-white rounded-full font-bold hover:bg-white/10 transition-all flex items-center justify-center">
+                <a href="contact.html" data-tilt data-tilt-scale="1.1" class="px-10 py-5 bg-transparent border-2 border-white/30 text-white rounded-full text-lg font-extrabold hover:bg-white/10 transition-all duration-300 flex items-center justify-center">
                     Request a Quote
                 </a>
             </div>
-            <p class="mt-8 text-blue-200 font-medium">thelughagateway@gmail.com</p>
+            <p data-aos="fade-in" data-aos-delay="400" class="mt-12 text-blue-200 font-bold tracking-wide">thelughagateway@gmail.com</p>
         </div>
     </section>
 
-    <footer class="bg-slate-950 text-slate-400 py-12 border-t border-slate-800 text-sm">
+    <footer class="bg-slate-950 text-slate-500 py-12 border-t border-slate-900 text-sm font-semibold tracking-wide">
         <div class="max-w-7xl mx-auto px-6 text-center">
-            <p>© 2026 Lugha Gateway. All rights reserved.</p>
+            <p>© 2026 LughaGateway. All rights reserved.</p>
         </div>
     </footer>
 
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/vanilla-tilt/1.8.0/vanilla-tilt.min.js"></script>
     <script>
-        // 1. Activate Icons
+        // 1. Initialize AOS (Handles fade ups properly on scroll down AND scroll up)
+        AOS.init({
+            duration: 800,        
+            easing: 'ease-out-cubic', 
+            once: false,  // Re-animates when scrolling up
+            mirror: true, // Elements disappear as you scroll past them
+            offset: 50,          
+        });
+
+        // 2. Custom Cursor Follower (Disabled on Mobile)
+        const cursor = document.getElementById('custom-cursor');
+        document.addEventListener('mousemove', (e) => {
+            cursor.style.left = e.clientX + 'px';
+            cursor.style.top = e.clientY + 'px';
+        });
+        document.addEventListener('mousedown', () => cursor.style.transform = 'translate(-50%, -50%) scale(0.8)');
+        document.addEventListener('mouseup', () => cursor.style.transform = 'translate(-50%, -50%) scale(1)');
+
+        // 3. Setup Icons
         lucide.createIcons();
 
-        // 2. Navbar Scroll Effect
+        // 4. Navbar Glass Effect
         const navbar = document.getElementById('navbar');
         window.addEventListener('scroll', () => {
             if (window.scrollY > 20) {
@@ -397,47 +428,184 @@
             }
         });
 
-        // 3. Simple Reveal Animation on Scroll
-        function reveal() {
-            var reveals = document.querySelectorAll(".reveal");
-            for (var i = 0; i < reveals.length; i++) {
-                var windowHeight = window.innerHeight;
-                var elementTop = reveals[i].getBoundingClientRect().top;
-                var elementVisible = 150;
-                if (elementTop < windowHeight - elementVisible) {
-                    reveals[i].classList.add("active");
+        // 5. Interactive Network Canvas (Mobile Safe)
+        const canvas = document.getElementById('network-canvas');
+        const ctx = canvas.getContext('2d');
+        let width, height, particles;
+        let mouse = { x: null, y: null, radius: 150 };
+
+        window.addEventListener('mousemove', (e) => {
+            const rect = document.getElementById('hero-section').getBoundingClientRect();
+            mouse.x = e.clientX - rect.left;
+            mouse.y = e.clientY - rect.top;
+        });
+
+        function initCanvas() {
+            width = canvas.width = document.getElementById('hero-section').offsetWidth;
+            height = canvas.height = document.getElementById('hero-section').offsetHeight;
+            particles = [];
+            // Reduce particles on smaller screens for performance
+            const particleCount = width < 768 ? 35 : 70;
+            for (let i = 0; i < particleCount; i++) {
+                particles.push({
+                    x: Math.random() * width, y: Math.random() * height,
+                    vx: (Math.random() - 0.5) * 1.5, vy: (Math.random() - 0.5) * 1.5,
+                    radius: Math.random() * 2 + 1.5
+                });
+            }
+        }
+
+        function animateNetwork() {
+            requestAnimationFrame(animateNetwork);
+            ctx.clearRect(0, 0, width, height);
+
+            for (let i = 0; i < particles.length; i++) {
+                let p = particles[i];
+                p.x += p.vx; p.y += p.vy;
+
+                if (p.x < 0 || p.x > width) p.vx *= -1;
+                if (p.y < 0 || p.y > height) p.vy *= -1;
+
+                let dxMouse = mouse.x - p.x;
+                let dyMouse = mouse.y - p.y;
+                let distanceMouse = Math.sqrt(dxMouse * dxMouse + dyMouse * dyMouse);
+                if (distanceMouse < mouse.radius) {
+                    const force = (mouse.radius - distanceMouse) / mouse.radius;
+                    p.x -= dxMouse * force * 0.05;
+                    p.y -= dyMouse * force * 0.05;
+                }
+
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+                ctx.fillStyle = 'rgba(37, 99, 235, 0.8)';
+                ctx.fill();
+
+                for (let j = i + 1; j < particles.length; j++) {
+                    let p2 = particles[j];
+                    let dx = p.x - p2.x; let dy = p.y - p2.y;
+                    let dist = Math.sqrt(dx * dx + dy * dy);
+                    if (dist < 120) {
+                        ctx.beginPath();
+                        ctx.moveTo(p.x, p.y); ctx.lineTo(p2.x, p2.y);
+                        ctx.strokeStyle = `rgba(37, 99, 235, ${0.5 - dist / 120})`;
+                        ctx.lineWidth = 1;
+                        ctx.stroke();
+                    }
                 }
             }
         }
-        window.addEventListener("scroll", reveal);
-        reveal();
+        initCanvas(); animateNetwork();
+        window.addEventListener('resize', initCanvas);
 
-        // 4. Word Counter Animation
-        function animateCounter(id, start, end, duration) {
-            let obj = document.getElementById(id);
-            let current = start;
-            let range = end - start;
-            let increment = Math.ceil(range / (duration / 20)); // Updates every 20ms
-            let timer = setInterval(() => {
-                current += increment;
-                if (current >= end) {
-                    current = end;
-                    clearInterval(timer);
+        // 6. Perfected Word Counter (Resets on scroll away)
+        const counterElement = document.getElementById("wordCounter");
+        let hasCounted = false;
+
+        function easeOutExpo(x) { return x === 1 ? 1 : 1 - Math.pow(2, -10 * x); }
+
+        function animateCounter(el, end, duration) {
+            let startTimestamp = null;
+            const step = (timestamp) => {
+                if (!startTimestamp) startTimestamp = timestamp;
+                const progress = Math.min((timestamp - startTimestamp) / duration, 1);
+                const currentVal = Math.floor(easeOutExpo(progress) * end);
+                el.textContent = currentVal.toLocaleString();
+                if (progress < 1) {
+                    window.requestAnimationFrame(step);
+                } else {
+                    el.textContent = end.toLocaleString() + "+";
                 }
-                obj.textContent = current.toLocaleString();
-            }, 20);
+            };
+            window.requestAnimationFrame(step);
         }
 
-        // Trigger Counter when visible
-        const observer = new IntersectionObserver((entries) => {
+        const counterObserver = new IntersectionObserver((entries) => {
             entries.forEach(entry => {
-                if (entry.isIntersecting) {
-                    animateCounter("wordCounter", 0, 3000000, 2500); // 2.5 seconds to reach 3M
-                    observer.disconnect(); // Only run once
+                if (entry.isIntersecting && !hasCounted) {
+                    hasCounted = true;
+                    animateCounter(counterElement, 3000000, 2500); 
+                } else if (!entry.isIntersecting) {
+                    // Reset when scrolled out of view!
+                    hasCounted = false;
+                    counterElement.textContent = "0";
                 }
             });
+        }, { threshold: 0.5 }); // Triggers when 50% of the section is visible
+        counterObserver.observe(document.getElementById("counter-section"));
+
+        // 7. Dynamic Solutions Auto-Slider
+        // Fixed Tailwind Purging bug by hardcoding class strings
+        const solutionsData = [
+            { title: "Language & Localization", icon: "globe", bgClass: "bg-blue-600", shadowClass: "shadow-blue-600/30", textClass: "text-blue-600", desc: "Translation, Transcreation, and LQA for African languages. We ensure your message adapts for cultural impact.", list: ["Website & App Localization", "Marketing Transcreation"] },
+            { title: "UX & Content Experience", icon: "users", bgClass: "bg-purple-600", shadowClass: "shadow-purple-600/30", textClass: "text-purple-600", desc: "We test localized content in real user journeys. Microcopy, error messages, and cultural usability reviews.", list: ["UX Writing Review", "Cultural Usability Testing"] },
+            { title: "AI & LLM Evaluation", icon: "cpu", bgClass: "bg-emerald-600", shadowClass: "shadow-emerald-600/30", textClass: "text-emerald-600", desc: "Validating African language outputs for accuracy. We provide MT post-editing and data annotation.", list: ["Human-Centered AI Training", "Bias & Tone Assessment"] },
+            { title: "Life Sciences & Regulated", icon: "activity", bgClass: "bg-rose-600", shadowClass: "shadow-rose-600/30", textClass: "text-rose-600", desc: "Clear language saves lives. We specialize in patient-facing materials, clinical trials, and compliance.", list: ["Clinical Translation", "Regulatory-Aware LQA"] }
+        ];
+        
+        let currentSol = 0;
+        const displayPane = document.getElementById('solution-display');
+        
+        function updateSolution(index) {
+            document.querySelectorAll('.solution-tab').forEach((tab, i) => {
+                tab.classList.toggle('tab-active', i === index);
+            });
+            const data = solutionsData[index];
+            displayPane.innerHTML = `
+                <div class="fade-content">
+                    <div class="w-16 h-16 ${data.bgClass} text-white rounded-2xl flex items-center justify-center mb-8 shadow-lg ${data.shadowClass}">
+                        <i data-lucide="${data.icon}" class="w-8 h-8"></i>
+                    </div>
+                    <h3 class="text-3xl font-extrabold text-slate-900 mb-4">${data.title}</h3>
+                    <p class="text-lg text-slate-600 mb-8 leading-relaxed">${data.desc}</p>
+                    <ul class="space-y-4 text-slate-500 font-semibold">
+                        <li class="flex items-center gap-3"><div class="w-2 h-2 rounded-full ${data.bgClass}"></div> ${data.list[0]}</li>
+                        <li class="flex items-center gap-3"><div class="w-2 h-2 rounded-full ${data.bgClass}"></div> ${data.list[1]}</li>
+                    </ul>
+                </div>
+            `;
+            lucide.createIcons();
+        }
+        updateSolution(0);
+        
+        let solTimer = setInterval(() => { currentSol = (currentSol + 1) % solutionsData.length; updateSolution(currentSol); }, 4000);
+        
+        // Make tabs manually clickable
+        document.querySelectorAll('.solution-tab').forEach((tab, index) => {
+            tab.addEventListener('click', () => {
+                clearInterval(solTimer); // Stop auto-play if user clicks
+                currentSol = index;
+                updateSolution(index);
+            });
         });
-        observer.observe(document.getElementById("wordCounter"));
+
+        // 8. Cinematic Industries Fader
+        const indData = [
+            { bg: "TECHNOLOGY", title: "Technology Platforms", desc: "Integrating seamless localization into global software and digital ecosystems.", icon: "laptop" },
+            { bg: "HEALTHCARE", title: "Pharma & Healthcare", desc: "Precision medical translation ensuring patient safety across borders.", icon: "heart-pulse" },
+            { bg: "SOCIAL MEDIA", title: "Social Media", desc: "Capturing cultural nuance for the fastest-growing digital populations.", icon: "smartphone" },
+            { bg: "EDUCATION", title: "Education & EdTech", desc: "Democratizing learning materials through native language accessibility.", icon: "book-open" },
+            { bg: "AI & TECH", title: "AI & Machine Learning", desc: "Providing high-fidelity human data to train the next generation of LLMs.", icon: "bot" }
+        ];
+
+        let currentInd = 0;
+        setInterval(() => {
+            currentInd = (currentInd + 1) % indData.length;
+            const data = indData[currentInd];
+            
+            document.getElementById('ind-content').style.opacity = 0;
+            document.getElementById('ind-content').style.transform = 'translateY(20px)';
+            
+            setTimeout(() => {
+                document.getElementById('ind-bg-text').textContent = data.bg;
+                document.getElementById('ind-title').textContent = data.title;
+                document.getElementById('ind-desc').textContent = data.desc;
+                document.getElementById('ind-icon').innerHTML = `<i data-lucide="${data.icon}" class="w-10 h-10 text-white"></i>`;
+                lucide.createIcons();
+                
+                document.getElementById('ind-content').style.opacity = 1;
+                document.getElementById('ind-content').style.transform = 'translateY(0)';
+            }, 500);
+        }, 3500);
 
     </script>
 </body>
